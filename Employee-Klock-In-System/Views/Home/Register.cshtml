@@ -1,26 +1,37 @@
-﻿@{
-    ViewData["Title"] = "Register";
-}
+﻿@model Employee_Klock_In_System.Models.RegisterViewModel
 
 <h2>Register</h2>
 
-<form asp-controller="Home" asp-action="Register" method="post">
+<form asp-action="Register" method="post">
     <div>
-        <label>Email</label>
-        <input type="email" name="email" required />
+        <label asp-for="FirstName"></label>
+        <input asp-for="FirstName" class="form-control" />
+        <span asp-validation-for="FirstName" class="text-danger"></span>
     </div>
+
     <div>
-        <label>Password</label>
-        <input type="password" name="password" required />
+        <label asp-for="LastName"></label>
+        <input asp-for="LastName" class="form-control" />
+        <span asp-validation-for="LastName" class="text-danger"></span>
     </div>
+
     <div>
-        <label>Confirm Password</label>
-        <input type="password" name="confirmPassword" required />
+        <label asp-for="Email"></label>
+        <input asp-for="Email" class="form-control" />
+        <span asp-validation-for="Email" class="text-danger"></span>
     </div>
+
+    <div>
+        <label asp-for="Password"></label>
+        <input asp-for="Password" class="form-control" type="password" />
+        <span asp-validation-for="Password" class="text-danger"></span>
+    </div>
+
+    <div>
+        <label asp-for="ConfirmPassword"></label>
+        <input asp-for="ConfirmPassword" class="form-control" type="password" />
+        <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
+    </div>
+
     <button type="submit">Register</button>
 </form>
-
-@if (ViewBag.Error != null)
-{
-    <p style="color:red">@ViewBag.Error</p>
-}

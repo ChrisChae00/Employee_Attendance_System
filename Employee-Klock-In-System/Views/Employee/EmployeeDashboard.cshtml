@@ -1,4 +1,263 @@
-﻿@{
+﻿@model Employee_Klock_In_System.Models.Employee
+
+@{
     ViewData["Title"] = "Employee Dashboard";
+    Layout = null; // Or use your layout if desired
 }
-<h2>Welcome to Employee Dashboard</h2>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>@ViewData["Title"]</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f3f4f6;
+        }
+
+        .sidebar {
+            width: 240px;
+            height: 100vh;
+            background-color: white;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+            padding: 20px;
+            position: fixed;
+        }
+
+            .sidebar img {
+                width: 40px;
+                height: 40px;
+                border-radius: 50%;
+            }
+
+            .sidebar h2 {
+                margin: 0;
+                font-size: 16px;
+            }
+
+            .sidebar p {
+                margin: 0;
+                color: #6b7280;
+                font-size: 14px;
+            }
+
+            .sidebar nav {
+                margin-top: 40px;
+            }
+
+            .sidebar a {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                padding: 12px 16px;
+                text-decoration: none;
+                color: #374151;
+                border-radius: 6px;
+                margin-bottom: 10px;
+            }
+
+                .sidebar a.active,
+                .sidebar a:hover {
+                    background-color: #f3f4f6;
+                }
+
+        .main-content {
+            margin-left: 260px;
+            padding: 30px;
+        }
+
+        .card {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
+            margin-bottom: 20px;
+        }
+
+            .card h2 {
+                margin-top: 0;
+            }
+
+        .flex {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        .btn-primary {
+            background-color: #1f2937;
+            color: white;
+        }
+
+        .btn-outline {
+            border: 1px solid #d1d5db;
+            background-color: white;
+        }
+
+        .grid {
+            display: grid;
+            gap: 20px;
+        }
+
+        .grid-2 {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .grid-7 {
+            grid-template-columns: repeat(7, 1fr);
+        }
+
+        .bar {
+            height: 120px;
+            background-color: #f3f4f6;
+            border-radius: 6px;
+            position: relative;
+        }
+
+        .bar-inner {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            background-color: #d1d5db;
+            border-radius: 6px;
+        }
+
+        .recent-item {
+            border-bottom: 1px solid #e5e7eb;
+            padding: 10px 0;
+        }
+
+            .recent-item:last-child {
+                border: none;
+            }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="flex items-center gap-3 mb-8">
+            <img src="https://api.dicebear.com/7.x/notionists/svg?scale=200&seed=123" />
+            <div>
+                <p class="text-sm text-neutral-500">Welcome back</p>
+                <p>John Anderson</p>
+            </div>
+        </div>
+
+        <nav>
+            <a href="#" class="active">Dashboard</a>
+            <a asp-action="AttendanceHistory">Attendance History</a>
+            <a asp-action="LeaveRequest">Leave Request</a>
+            <a asp-controller="Home" asp-action="Logout">Logout</a>
+        </nav>
+    </div>
+        
+    <div class="main-content">
+        <h1>Welcome back, @Model.FullName </h1>
+        <p>@DateTime.Now.ToString("dddd, MMMM dd, yyyy")</p>
+
+        <div class="grid grid-2">
+            <!-- Clock In/Out -->
+            <div class="card">
+                <div class="flex">
+                    <h2>Time Clock</h2>
+                    <span>@DateTime.Now.ToString("hh:mm tt")</span>
+                </div>
+                <form method="post" asp-action="ClockInOut">
+                    <button class="btn btn-primary" name="action" value="CheckIn">Clock In</button>
+                    <button class="btn btn-outline" name="action" value="CheckOut">Clock Out</button>
+                </form>
+            </div>
+
+            <!-- Today’s Summary -->
+            <div class="card">
+                <h2>Today's Activity</h2>
+                <div class="flex">
+                    <span>Clock In</span>
+                    <span>08:30 AM</span>
+                </div>
+                <div class="flex">
+                    <span>Clock Out</span>
+                    <span>--:--</span>
+                </div>
+                <div class="flex" style="border-top: 1px solid #e5e7eb; padding-top: 10px;">
+                    <strong>Hours Today</strong>
+                    <span>1h 11m</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Weekly Hours -->
+        <div class="card">
+            <h2>Weekly Hours</h2>
+            <div class="grid grid-7">
+                @foreach (var day in new[] { "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun" })
+                {
+                    <div style="text-align: center;">
+                        <div class="bar">
+                            <div class="bar-inner" style="height: 60%;"></div>
+                        </div>
+                        <span>@day</span>
+                    </div>
+                }
+            </div>
+            <div class="flex" style="margin-top: 20px; border-top: 1px solid #e5e7eb; padding-top: 10px;">
+                <span>Total Hours This Week</span>
+                <strong>12h 30m</strong>
+            </div>
+        </div>
+
+        <!-- Attendance Timeline -->
+        <div class="card">
+            <h2 style="margin-bottom: 20px;">Attendance History</h2>
+
+            <div style="display: flex; gap: 16px; padding: 16px; border-left: 4px solid #1f2937; background-color: #fafafa; margin-bottom: 12px;">
+                <div style="width: 120px;">
+                    <p>Mon, Jan 15</p>
+                    <p style="color: #6b7280; font-size: 13px;">2025</p>
+                </div>
+                <div style="flex: 1;">
+                    <div class="flex" style="justify-content: space-between;">
+                        <span>09:00 AM - 05:00 PM</span>
+                        <span style="color: #6b7280;">8h 00m</span>
+                    </div>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 16px; padding: 16px; border-left: 4px solid #d1d5db; background-color: #fafafa; margin-bottom: 12px;">
+                <div style="width: 120px;">
+                    <p>Sun, Jan 14</p>
+                    <p style="color: #6b7280; font-size: 13px;">2025</p>
+                </div>
+                <div style="flex: 1;">
+                    <div class="flex" style="justify-content: space-between;">
+                        <span>09:00 AM - 05:30 PM</span>
+                        <span style="color: #6b7280;">8h 30m</span>
+                    </div>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 16px; padding: 16px; border-left: 4px solid #d1d5db; background-color: #fafafa;">
+                <div style="width: 120px;">
+                    <p>Sat, Jan 13</p>
+                    <p style="color: #6b7280; font-size: 13px;">2025</p>
+                </div>
+                <div style="flex: 1;">
+                    <div class="flex" style="justify-content: space-between;">
+                        <span>09:00 AM - 05:00 PM</span>
+                        <span style="color: #6b7280;">8h 00m</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</body>
+</html>

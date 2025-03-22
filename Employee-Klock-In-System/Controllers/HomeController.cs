@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Employee_Klock_In_System.Models;
+using Microsoft.EntityFrameworkCore;
+using Employee_Klock_In_System.Data;
 
 namespace Employee_Klock_In_System.Controllers
 {
@@ -8,11 +10,13 @@ namespace Employee_Klock_In_System.Controllers
     {
         private readonly SignInManager<IdentityUser> _signInManager;
         private readonly UserManager<IdentityUser> _userManager;
+        private readonly ApplicationDbContext _context;
 
-        public HomeController(SignInManager<IdentityUser> signInManager, UserManager<IdentityUser> userManager)
+        public HomeController(SignInManager<IdentityUser> signInManager, UserManager<IdentityUser> userManager, ApplicationDbContext context)
         {
             _signInManager = signInManager;
             _userManager = userManager;
+            _context = context;
         }
 
         [HttpGet]
@@ -49,27 +53,42 @@ namespace Employee_Klock_In_System.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Register(string email, string password, string confirmPassword)
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Register(RegisterViewModel model)
         {
-            if (password != confirmPassword)
+            if (ModelState.IsValid)
             {
-                ViewBag.Error = "Passwords do not match.";
-                return View();
+                var user = new IdentityUser { UserName = model.Email, Email = model.Email };
+                var result = await _userManager.CreateAsync(user, model.Password);
+
+                if (result.Succeeded)
+                {
+                    // Create and store employee data
+                    var employee = new Employee
+                    {
+                        FirstName = model.FirstName,
+                        LastName = model.LastName,
+                        Email = model.Email,
+                        Role = "Employee"
+                    };
+
+                    _context.Employees.Add(employee);
+                    await _context.SaveChangesAsync();
+
+                    await _userManager.AddToRoleAsync(user, "Employee");
+                    await _signInManager.SignInAsync(user, isPersistent: false);
+                    return RedirectToAction("EmployeeDashboard", "Employee");
+                }
+
+                foreach (var error in result.Errors)
+                {
+                    ModelState.AddModelError(string.Empty, error.Description);
+                }
             }
 
-            var user = new IdentityUser { UserName = email, Email = email };
-            var result = await _userManager.CreateAsync(user, password);
-
-            if (result.Succeeded)
-            {
-                await _userManager.AddToRoleAsync(user, "Employee");
-                await _signInManager.SignInAsync(user, isPersistent: false);
-                return RedirectToAction("EmployeeDashboard", "Employee");
-            }
-
-            ViewBag.Error = string.Join(", ", result.Errors.Select(e => e.Description));
-            return View();
+            return View(model);
         }
+
 
         public async Task<IActionResult> Logout()
         {
