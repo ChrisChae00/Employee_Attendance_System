@@ -1,32 +1,51 @@
-using System.Diagnostics;
-using Employee_Klock_In_System.Models;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Employee_Klock_In_System.Models;
 
 namespace Employee_Klock_In_System.Controllers
 {
-    public class HomeController : Controller
+    public class HomeController : Controller 
     {
-        private readonly ILogger<HomeController> _logger;
+        private readonly SignInManager<IdentityUser> _signInManager;
+        private readonly UserManager<IdentityUser> _userManager;
 
-        public HomeController(ILogger<HomeController> logger)
+        public HomeController(SignInManager<IdentityUser> signInManager, UserManager<IdentityUser> userManager)
         {
-            _logger = logger;
+            _signInManager = signInManager;
+            _userManager = userManager;
         }
 
+        [HttpGet]
         public IActionResult Index()
         {
             return View();
         }
 
-        public IActionResult Privacy()
+        [HttpPost]
+        public async Task<IActionResult> Index(string email, string password)
         {
+            var user = await _userManager.FindByEmailAsync(email);
+            if (user != null)
+            {
+                var result = await _signInManager.PasswordSignInAsync(user, password, false, false);
+                if (result.Succeeded)
+                {
+                    var roles = await _userManager.GetRolesAsync(user);
+                    if (roles.Contains("Admin"))
+                        return RedirectToAction("AdminDashboard", "Admin");
+
+                    return RedirectToAction("EmployeeDashboard", "Employee");
+                }
+            }
+
+            ViewBag.LoginError = "Invalid email or password";
             return View();
         }
 
-        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
-        public IActionResult Error()
+        public async Task<IActionResult> Logout()
         {
-            return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+            await _signInManager.SignOutAsync();
+            return RedirectToAction("Index");
         }
     }
 }

@@ -5,9 +5,9 @@ namespace Employee_Klock_In_System.Controllers
     public class EmployeeController : Controller
     {
         // Show list of attendance
-        public IActionResult Index()
+        public IActionResult EmployeeDashboard()
         {
-            return View();  // Views/Employee/Index.cshtml
+            return View();  // Views/Employee/EmployeeDashboard.cshtml
         }
 
         // GET: Employee/CheckIn

@@ -5,9 +5,9 @@ namespace Employee_Klock_In_System.Controllers
     public class AdminController : Controller
     {
         // Dashboard home
-        public IActionResult Dashboard()
+        public IActionResult AdminDashboard()
         {
-            return View();  // Views/Admin/Dashboard.cshtml
+            return View();  // Views/Admin/AdminDashboard.cshtml
         }
 
         // View all attendance records
