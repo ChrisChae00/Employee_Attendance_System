@@ -1,263 +1,314 @@
-﻿@model Employee_Klock_In_System.Models.Employee
+﻿@model Employee_Klock_In_System.Models.DashboardViewModel
+
 
 @{
-    ViewData["Title"] = "Employee Dashboard";
-    Layout = null; // Or use your layout if desired
+	ViewData["Title"] = "Employee Dashboard";
+	Layout = null; // Or use your layout if desired
+}
+
+@{
+	var days = new[] { "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun" };
+	var weekStart = DateTime.Today.AddDays(-(int)DateTime.Today.DayOfWeek + 1); // Monday
+	var totalMinutes = 0;
 }
 
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="utf-8" />
-    <title>@ViewData["Title"]</title>
-    <style>
-        body {
-            margin: 0;
-            font-family: Arial, sans-serif;
-            background-color: #f3f4f6;
-        }
+	<meta charset="utf-8" />
+	<title>@ViewData["Title"]</title>
+	<style>
+		body {
+			margin: 0;
+			font-family: Arial, sans-serif;
+			background-color: #f3f4f6;
+		}
 
-        .sidebar {
-            width: 240px;
-            height: 100vh;
-            background-color: white;
-            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
-            padding: 20px;
-            position: fixed;
-        }
+		.sidebar {
+			width: 240px;
+			height: 100vh;
+			background-color: white;
+			box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+			padding: 20px;
+			position: fixed;
+		}
 
-            .sidebar img {
-                width: 40px;
-                height: 40px;
-                border-radius: 50%;
-            }
+			.sidebar img {
+				width: 40px;
+				height: 40px;
+				border-radius: 50%;
+			}
 
-            .sidebar h2 {
-                margin: 0;
-                font-size: 16px;
-            }
+			.sidebar h2 {
+				margin: 0;
+				font-size: 16px;
+			}
 
-            .sidebar p {
-                margin: 0;
-                color: #6b7280;
-                font-size: 14px;
-            }
+			.sidebar p {
+				margin: 0;
+				color: #6b7280;
+				font-size: 14px;
+			}
 
-            .sidebar nav {
-                margin-top: 40px;
-            }
+			.sidebar nav {
+				margin-top: 40px;
+			}
 
-            .sidebar a {
-                display: flex;
-                align-items: center;
-                gap: 10px;
-                padding: 12px 16px;
-                text-decoration: none;
-                color: #374151;
-                border-radius: 6px;
-                margin-bottom: 10px;
-            }
+			.sidebar a {
+				display: flex;
+				align-items: center;
+				gap: 10px;
+				padding: 12px 16px;
+				text-decoration: none;
+				color: #374151;
+				border-radius: 6px;
+				margin-bottom: 10px;
+			}
 
-                .sidebar a.active,
-                .sidebar a:hover {
-                    background-color: #f3f4f6;
-                }
+				.sidebar a.active,
+				.sidebar a:hover {
+					background-color: #f3f4f6;
+				}
 
-        .main-content {
-            margin-left: 260px;
-            padding: 30px;
-        }
+		.main-content {
+			margin-left: 260px;
+			padding: 30px;
+		}
 
-        .card {
-            background-color: white;
-            padding: 20px;
-            border-radius: 8px;
-            border: 1px solid #e5e7eb;
-            margin-bottom: 20px;
-        }
+		.card {
+			background-color: white;
+			padding: 20px;
+			border-radius: 8px;
+			border: 1px solid #e5e7eb;
+			margin-bottom: 20px;
+		}
 
-            .card h2 {
-                margin-top: 0;
-            }
+			.card h2 {
+				margin-top: 0;
+			}
 
-        .flex {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
+		.flex {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+		}
 
-        .btn {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-        }
+		.btn {
+			padding: 10px 20px;
+			border: none;
+			border-radius: 6px;
+			cursor: pointer;
+		}
 
-        .btn-primary {
-            background-color: #1f2937;
-            color: white;
-        }
+		.btn-primary {
+			background-color: #1f2937;
+			color: white;
+		}
 
-        .btn-outline {
-            border: 1px solid #d1d5db;
-            background-color: white;
-        }
+		.btn-outline {
+			border: 1px solid #d1d5db;
+			background-color: white;
+		}
 
-        .grid {
-            display: grid;
-            gap: 20px;
-        }
+		.grid {
+			display: grid;
+			gap: 20px;
+		}
 
-        .grid-2 {
-            grid-template-columns: repeat(2, 1fr);
-        }
+		.grid-2 {
+			grid-template-columns: repeat(2, 1fr);
+		}
 
-        .grid-7 {
-            grid-template-columns: repeat(7, 1fr);
-        }
+		.grid-7 {
+			grid-template-columns: repeat(7, 1fr);
+		}
 
-        .bar {
-            height: 120px;
-            background-color: #f3f4f6;
-            border-radius: 6px;
-            position: relative;
-        }
+		.bar {
+			height: 120px;
+			background-color: #f3f4f6;
+			border-radius: 6px;
+			position: relative;
+		}
 
-        .bar-inner {
-            position: absolute;
-            bottom: 0;
-            width: 100%;
-            background-color: #d1d5db;
-            border-radius: 6px;
-        }
+		.bar-inner {
+			position: absolute;
+			bottom: 0;
+			width: 100%;
+			background-color: #d1d5db;
+			border-radius: 6px;
+		}
 
-        .recent-item {
-            border-bottom: 1px solid #e5e7eb;
-            padding: 10px 0;
-        }
+		.recent-item {
+			border-bottom: 1px solid #e5e7eb;
+			padding: 10px 0;
+		}
 
-            .recent-item:last-child {
-                border: none;
-            }
-    </style>
+			.recent-item:last-child {
+				border: none;
+			}
+	</style>
 </head>
 <body>
-    <div class="sidebar">
-        <div class="flex items-center gap-3 mb-8">
-            <img src="https://api.dicebear.com/7.x/notionists/svg?scale=200&seed=123" />
-            <div>
-                <p class="text-sm text-neutral-500">Welcome back</p>
-                <p>John Anderson</p>
-            </div>
-        </div>
+	<div class="sidebar">
+		<div class="flex items-center gap-3 mb-8">
+			<img src="https://api.dicebear.com/7.x/notionists/svg?scale=200&seed=123" />
+			<div>
+				<p class="text-sm text-neutral-500">Welcome back</p>
+				<p>@Model.Employee.FullName</p>
+			</div>
+		</div>
 
-        <nav>
-            <a href="#" class="active">Dashboard</a>
-            <a asp-action="AttendanceHistory">Attendance History</a>
-            <a asp-action="LeaveRequest">Leave Request</a>
-            <a asp-controller="Home" asp-action="Logout">Logout</a>
-        </nav>
-    </div>
-        
-    <div class="main-content">
-        <h1>Welcome back, @Model.FullName </h1>
-        <p>@DateTime.Now.ToString("dddd, MMMM dd, yyyy")</p>
+		<nav>
+			<a href="#" class="active">Dashboard</a>
+			<a asp-action="AttendanceHistory">Attendance History</a>
+			<a asp-action="LeaveRequest">Leave Request</a>
+			<a asp-controller="Home" asp-action="Logout">Logout</a>
+		</nav>
+	</div>
 
-        <div class="grid grid-2">
-            <!-- Clock In/Out -->
-            <div class="card">
-                <div class="flex">
-                    <h2>Time Clock</h2>
-                    <span>@DateTime.Now.ToString("hh:mm tt")</span>
-                </div>
-                <form method="post" asp-action="ClockInOut">
-                    <button class="btn btn-primary" name="action" value="CheckIn">Clock In</button>
-                    <button class="btn btn-outline" name="action" value="CheckOut">Clock Out</button>
-                </form>
-            </div>
+	<div class="main-content">
+		<h1>@DateTime.Now.ToString("dddd, MMMM dd, yyyy")</h1>
 
-            <!-- Today’s Summary -->
-            <div class="card">
-                <h2>Today's Activity</h2>
-                <div class="flex">
-                    <span>Clock In</span>
-                    <span>08:30 AM</span>
-                </div>
-                <div class="flex">
-                    <span>Clock Out</span>
-                    <span>--:--</span>
-                </div>
-                <div class="flex" style="border-top: 1px solid #e5e7eb; padding-top: 10px;">
-                    <strong>Hours Today</strong>
-                    <span>1h 11m</span>
-                </div>
-            </div>
-        </div>
+		<div class="grid grid-2">
+			<!-- Clock In/Out -->
+			<div class="card">
+				<div class="flex justify-between items-center mb-6">
+					<h2 class="text-lg">Time Clock</h2>
+					<span class="text-2xl" id="currentTime">--:-- --</span>
+				</div>
+				<div class="grid grid-2">
+				<form asp-action="ClockIn" method="post" class="grid">
+					<button type="submit" class="btn btn-primary">Clock In</button>
+				</form>
 
-        <!-- Weekly Hours -->
-        <div class="card">
-            <h2>Weekly Hours</h2>
-            <div class="grid grid-7">
-                @foreach (var day in new[] { "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun" })
-                {
-                    <div style="text-align: center;">
-                        <div class="bar">
-                            <div class="bar-inner" style="height: 60%;"></div>
-                        </div>
-                        <span>@day</span>
-                    </div>
-                }
-            </div>
-            <div class="flex" style="margin-top: 20px; border-top: 1px solid #e5e7eb; padding-top: 10px;">
-                <span>Total Hours This Week</span>
-                <strong>12h 30m</strong>
-            </div>
-        </div>
+					<form asp-action="ClockOut" method="post" class="grid">
+					<button type="submit" class="btn btn-outline-secondary">Clock Out</button>
+				</form>
+				</div>
+			</div>
 
-        <!-- Attendance Timeline -->
-        <div class="card">
-            <h2 style="margin-bottom: 20px;">Attendance History</h2>
+			<script>
+				function updateTime() {
+					const now = new Date();
+					const options = { hour: '2-digit', minute: '2-digit' };
+					document.getElementById('currentTime').textContent = now.toLocaleTimeString([], options);
+				}
 
-            <div style="display: flex; gap: 16px; padding: 16px; border-left: 4px solid #1f2937; background-color: #fafafa; margin-bottom: 12px;">
-                <div style="width: 120px;">
-                    <p>Mon, Jan 15</p>
-                    <p style="color: #6b7280; font-size: 13px;">2025</p>
-                </div>
-                <div style="flex: 1;">
-                    <div class="flex" style="justify-content: space-between;">
-                        <span>09:00 AM - 05:00 PM</span>
-                        <span style="color: #6b7280;">8h 00m</span>
-                    </div>
-                </div>
-            </div>
+				setInterval(updateTime, 1000);
+				updateTime();
+			</script>
+			<!-- Today’s Summary -->
+			<div class="card">
+				<h2 style="margin-bottom: 16px;">Today's Activity</h2>
 
-            <div style="display: flex; gap: 16px; padding: 16px; border-left: 4px solid #d1d5db; background-color: #fafafa; margin-bottom: 12px;">
-                <div style="width: 120px;">
-                    <p>Sun, Jan 14</p>
-                    <p style="color: #6b7280; font-size: 13px;">2025</p>
-                </div>
-                <div style="flex: 1;">
-                    <div class="flex" style="justify-content: space-between;">
-                        <span>09:00 AM - 05:30 PM</span>
-                        <span style="color: #6b7280;">8h 30m</span>
-                    </div>
-                </div>
-            </div>
+				@if (Model.TodayAttendance == null)
+				{
+					<p>No activity recorded for today.</p>
+				}
+				else
+				{
+					var checkIn = Model.TodayAttendance.CheckInTime;
+					var checkOut = Model.TodayAttendance.CheckOutTime;
+					var duration = checkOut.HasValue ? checkOut.Value - checkIn : TimeSpan.Zero;
 
-            <div style="display: flex; gap: 16px; padding: 16px; border-left: 4px solid #d1d5db; background-color: #fafafa;">
-                <div style="width: 120px;">
-                    <p>Sat, Jan 13</p>
-                    <p style="color: #6b7280; font-size: 13px;">2025</p>
-                </div>
-                <div style="flex: 1;">
-                    <div class="flex" style="justify-content: space-between;">
-                        <span>09:00 AM - 05:00 PM</span>
-                        <span style="color: #6b7280;">8h 00m</span>
-                    </div>
-                </div>
-            </div>
-        </div>
+					<div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
+						<span style="color: #6b7280;">Clock In</span>
+						<span>@checkIn.ToString("hh:mm tt")</span>
+					</div>
 
-    </div>
+					<div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
+						<span style="color: #6b7280;">Clock Out</span>
+						<span>@(checkOut.HasValue ? checkOut.Value.ToString("hh:mm tt") : "--:-- --")</span>
+					</div>
+
+					<div style="display: flex; justify-content: space-between; margin-top: 12px; padding-top: 12px; border-top: 1px solid #e5e7eb;">
+						<strong>Hours Today</strong>
+						<strong>@(checkOut.HasValue ? $"{(int)duration.TotalHours}h {duration.Minutes:D2}m" : "—")</strong>
+					</div>
+				}
+			</div>
+		</div>
+
+
+
+		<!-- Weekly Hours -->
+		<div class="card">
+			<h2>Weekly Hours</h2>
+
+			<div class="grid grid-7" style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 16px;">
+				@for (int i = 0; i < 7; i++)
+				{
+					var date = weekStart.AddDays(i);
+					var dayLabel = days[i];
+
+					var entry = Model.WeeklyAttendance.FirstOrDefault(a => a.CheckInTime.Date == date.Date);
+					var duration = TimeSpan.Zero;
+
+					if (entry?.CheckOutTime != null)
+					{
+						duration = entry.CheckOutTime.Value - entry.CheckInTime;
+						totalMinutes += (int)duration.TotalMinutes;
+					}
+
+					var barHeightPercent = (int)(duration.TotalHours / 15 * 100); // 15h = full bar
+
+					<div style="text-align: center;">
+						<div class="bar" style="height: 128px; background-color: #eee; position: relative;">
+							@if (barHeightPercent > 0)
+							{
+								<div class="bar-inner" style="position: absolute; bottom: 0; width: 100%; background-color: #ccc; height: @($"{barHeightPercent}%");"></div>
+							}
+						</div>
+						<span>@dayLabel</span>
+					</div>
+				}
+			</div>
+
+			<div class="flex" style="margin-top: 20px; border-top: 1px solid #e5e7eb; padding-top: 10px; justify-content: space-between;">
+				<strong>Total Hours This Week</strong>
+				<strong>@(totalMinutes / 60)h @(totalMinutes % 60)m</strong>
+			</div>
+		</div>
+
+		<!-- Attendance Timeline -->
+		<div class="card">
+			<h2 style="margin-bottom: 20px;">Attendance History</h2>
+			@if (!Model.RecentHistory.Any())
+			{
+				<p>No attendance history found.</p>
+			}
+			else
+			{
+				foreach (var record in Model.RecentHistory)
+				{
+					var checkIn = record.CheckInTime;
+					var checkOut = record.CheckOutTime;
+
+					var duration = checkOut.HasValue
+					? checkOut.Value - checkIn
+					: TimeSpan.Zero;
+
+					<div style="display: flex; gap: 16px; padding: 16px; border-left: 4px solid #1f2937; background-color: #fafafa; margin-bottom: 12px;">
+						<div style="width: 120px;">
+							<p>@checkIn.ToString("ddd, MMM dd")</p>
+							<p style="color: #6b7280; font-size: 13px;">@checkIn.Year</p>
+						</div>
+						<div style="flex: 1;">
+							<div class="flex" style="justify-content: space-between;">
+								<span>
+									@checkIn.ToString("hh:mm tt") -
+									@(checkOut.HasValue ? checkOut.Value.ToString("hh:mm tt") : "--:-- --")
+								</span>
+								<span style="color: #6b7280;">
+									@(checkOut.HasValue ? $"{(int)duration.TotalHours}h {duration.Minutes:D2}m" : "—")
+								</span>
+							</div>
+						</div>
+					</div>
+				}
+			}
+
+
+		</div>
 </body>
 </html>
