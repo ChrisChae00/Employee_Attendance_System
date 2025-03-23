@@ -3,6 +3,7 @@ using Employee_Klock_In_System.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace Employee_Klock_In_System.Controllers
 {
@@ -23,27 +24,30 @@ namespace Employee_Klock_In_System.Controllers
             var employee = await _context.Employees.FirstOrDefaultAsync(e => e.Email == user.Email);
 
             if (employee == null)
-                return NotFound();
+            {
+                return RedirectToAction("Index", "Home");
+            }
 
             var today = DateTime.Today;
-
-            var todayAttendance = await _context.Attendances
-                .Where(a => a.EmployeeId == employee.Id && a.CheckInTime.Date == today)
-                .OrderByDescending(a => a.CheckInTime)
-                .FirstOrDefaultAsync();
-
-            var weekStart = DateTime.Today.AddDays(-(int)DateTime.Today.DayOfWeek + 1); // Monday
-            var weekEnd = weekStart.AddDays(6);
+            var currentDay = (int)today.DayOfWeek;
+            var weekStart = today.AddDays(-((currentDay + 6) % 7));
+            var weekEnd = weekStart.AddDays(7);
 
             var weeklyAttendances = await _context.Attendances
-                .Where(a => a.EmployeeId == employee.Id && a.CheckInTime.Date >= weekStart && a.CheckInTime.Date <= weekEnd)
+                .Where(a => a.EmployeeId == employee.Id &&
+                            a.CheckInTime.Date >= weekStart &&
+                            a.CheckInTime.Date < weekEnd)
+                .OrderBy(a => a.CheckInTime)
                 .ToListAsync();
+
+            var todayAttendance = weeklyAttendances
+                .FirstOrDefault(a => a.CheckInTime.Date == today);
 
             var history = await _context.Attendances
                 .Where(a => a.EmployeeId == employee.Id)
                 .OrderByDescending(a => a.CheckInTime)
                 .Take(7)
-                .ToListAsync();
+                .ToListAsync();  // Get the last 7 days of attendance history
 
             var viewModel = new DashboardViewModel
             {
@@ -55,9 +59,6 @@ namespace Employee_Klock_In_System.Controllers
 
             return View(viewModel);
         }
-
-
-
 
         // GET: Employee/CheckIn
         [HttpPost]
