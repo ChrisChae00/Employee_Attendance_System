@@ -172,17 +172,19 @@
 		<div class="grid grid-2">
 			<!-- Clock In/Out -->
 			<div class="card">
-				<div class="flex justify-between items-center mb-6">
-					<h2 class="text-lg">Time Clock</h2>
-					<span class="text-2xl" id="currentTime">--:-- --</span>
+				<div class="card-body">
+					<h2 style="display: flex; margin-bottom: 12px;"> Time Clock</h2>
+					<h1 style="display: flex; justify-content: center; align-content: stretch; font-size: 50px; margin-top: 12px; margin-bottom: 12px;" id="currentTime">--:-- --</h1>
+				
 				</div>
+
 				<div class="grid grid-2">
-				<form asp-action="ClockIn" method="post" class="grid">
-					<button type="submit" class="btn btn-primary">Clock In</button>
+				<form asp-action="KlockIn" method="post" class="grid">
+					<button type="submit" class="btn btn-primary">Klock In</button>
 				</form>
 
-					<form asp-action="ClockOut" method="post" class="grid">
-					<button type="submit" class="btn btn-outline-secondary">Clock Out</button>
+					<form asp-action="KlockOut" method="post" class="grid">
+					<button type="submit" class="btn btn-outline-secondary">Klock Out</button>
 				</form>
 				</div>
 			</div>
@@ -211,17 +213,17 @@
 					var checkOut = Model.TodayAttendance.CheckOutTime;
 					var duration = checkOut.HasValue ? checkOut.Value - checkIn : TimeSpan.Zero;
 
-					<div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
+					<div style="display: flex; justify-content: space-between; align-content: end; margin-bottom: 15px;">
 						<span style="color: #6b7280;">Clock In</span>
 						<span>@checkIn.ToString("hh:mm tt")</span>
 					</div>
 
-					<div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
+					<div style="display: flex; justify-content: space-between; align-content: end; margin-bottom: 15px;">
 						<span style="color: #6b7280;">Clock Out</span>
 						<span>@(checkOut.HasValue ? checkOut.Value.ToString("hh:mm tt") : "--:-- --")</span>
 					</div>
 
-					<div style="display: flex; justify-content: space-between; margin-top: 12px; padding-top: 12px; border-top: 1px solid #e5e7eb;">
+					<div style="display: flex;justify-content: space-between;margin-top: 12px;padding-top: 12px;border-top: 1px solid #e5e7eb;">
 						<strong>Hours Today</strong>
 						<strong>@(checkOut.HasValue ? $"{(int)duration.TotalHours}h {duration.Minutes:D2}m" : "—")</strong>
 					</div>

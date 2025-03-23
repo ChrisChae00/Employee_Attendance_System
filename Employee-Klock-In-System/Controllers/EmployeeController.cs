@@ -61,7 +61,7 @@ namespace Employee_Klock_In_System.Controllers
 
         // GET: Employee/CheckIn
         [HttpPost]
-        public async Task<IActionResult> ClockIn()
+        public async Task<IActionResult> KlockIn()
         {
             var user = await _userManager.GetUserAsync(User);
             var employee = await _context.Employees.FirstOrDefaultAsync(e => e.Email == user.Email);
@@ -88,7 +88,7 @@ namespace Employee_Klock_In_System.Controllers
 
         // GET: Employee/CheckOut
         [HttpPost]
-        public async Task<IActionResult> ClockOut()
+        public async Task<IActionResult> KlockOut()
         {
             var user = await _userManager.GetUserAsync(User);
             var employee = await _context.Employees.FirstOrDefaultAsync(e => e.Email == user.Email);
