@@ -1,0 +1,121 @@
+﻿@model Employee_Klock_In_System.Models.ViewModels.ViewAllEmployeesViewModel
+@{
+	ViewData["Title"] = "View All Employees";
+	Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8" />
+	<title>@ViewData["Title"]</title>
+	<link rel="stylesheet" href="~/css/site.css" />
+</head>
+
+<body>
+	<div class="sidebar">
+		<div class="flex" style="align-items: center; gap: 10px; margin-bottom: 30px;">
+			<img src="https://api.dicebear.com/7.x/notionists/svg?scale=200&seed=admin" />
+			<div>
+				<p style="color: #6b7280; font-size: 14px;">Welcome back</p>
+				<p>@Model.Admin.FullName</p>
+			</div>
+		</div>
+		<nav>
+			<a asp-action="RedirectToDashboard" asp-controller="Home">Dashboard</a>
+			<a asp-action="ViewAllEmployees" class="active">View All Employees</a>
+			<a asp-action="AttendanceRecords">Attendance Records</a>
+			<a asp-action="ManageLeaveRequests">Manage Leave Requests</a>
+			<a asp-action="AddEmployee">Add New Employee</a>
+		</nav>
+		<a asp-controller="Home" asp-action="Logout" class="logout-btn">Logout</a>
+	</div>
+
+	<div class="main-content">
+		<h1 style="font-size: 24px; margin-bottom: 20px;">All Employees</h1>
+
+		<div class="card">
+			<table>
+				<thead>
+					<tr>
+						<th>Full Name</th>
+						<th>Email</th>
+						<th>Role</th>
+						<th>Actions</th>
+					</tr>
+				</thead>
+				<tbody>
+					@foreach (var employee in Model.Employees)
+					{
+						var isEditing = Context.Request.Query["editId"] == employee.Id.ToString();
+						<tr>
+							<form method="post" asp-action="UpdateEmployee">
+								<input type="hidden" name="Id" value="@employee.Id" />
+							<td>
+									@if (isEditing)
+									{
+									<input type="text" name="FirstName" value="@employee.FirstName" placeholder="First" />
+									<input type="text" name="LastName" value="@employee.LastName" placeholder="Last" />
+									}
+									else
+									{
+									<span>@employee.FirstName @employee.LastName</span>
+									}
+							</td>
+							<td>
+									@if (isEditing)
+									{
+									<input type="email" name="Email" value="@employee.Email" />
+									}
+									else
+									{
+									<span>@employee.Email</span>
+									}
+							</td>
+							<td>
+									@if (isEditing)
+									{
+									<select name="Role">
+										<option value="Employee" selected="@(employee.Role == "Employee")">Employee</option>
+										<option value="Admin" selected="@(employee.Role == "Admin")">Admin</option>
+									</select>
+									}
+									else
+									{
+									<span>@employee.Role</span>
+									}
+							</td>
+							<td>
+									@if (isEditing)
+									{
+									<button type="submit" class="button-link">Save</button>
+									<a asp-action="ViewAllEmployees" class="button-link">Cancel</a>
+									}
+									else
+									{
+									<a href="?editId=@employee.Id" class="button-link">Edit</a>
+									<a href="?deleteId=@employee.Id" class="button-link"
+									   onclick="return confirm('Are you sure you want to delete @employee.FirstName @employee.LastName?');">
+										Delete
+									</a>
+
+
+									}
+							</td>
+							</form>
+						</tr>
+					}
+				</tbody>
+			</table>
+		</div>
+	</div>
+
+	<script>
+		function confirmDelete(id, name, email, role) {
+			if (confirm(`Are you sure you want to delete this employee?\n\nName: ${name}\nEmail: ${email}\nRole: ${role}`)) {
+				window.location.href = `/Admin/DeleteEmployee/${id}`;
+			}
+		}
+	</script>
+</body>
+</html>

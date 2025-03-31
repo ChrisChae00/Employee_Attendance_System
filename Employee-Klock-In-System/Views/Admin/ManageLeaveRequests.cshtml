@@ -1,0 +1,73 @@
+﻿@model Employee_Klock_In_System.Models.ViewModels.LeaveRequestViewModel
+
+@{
+	ViewData["Title"] = "Manage Leave Requests";
+	Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8" />
+	<title>@ViewData["Title"]</title>
+	<link rel="stylesheet" href="~/css/site.css" />
+</head>
+
+<body>
+	<div class="sidebar">
+		<div class="flex" style="align-items: center; gap: 10px; margin-bottom: 30px;">
+			<img src="https://api.dicebear.com/7.x/notionists/svg?scale=200&seed=admin" />
+			<div>
+				<p style="color: #6b7280; font-size: 14px;">Welcome back</p>
+				<p>@Model.Admin.FullName</p>
+			</div>
+		</div>
+
+		<nav>
+			<a asp-action="AdminDashboard">Dashboard</a>
+			<a asp-action="ViewAllEmployees">View All Employees</a>
+			<a asp-action="AttendanceRecords">Attendance Records</a>
+			<a asp-action="ManageLeaveRequests" class="active">Manage Leave Requests</a>
+			<a asp-action="AddEmployee">Add New Employee</a>
+		</nav>
+
+		<a asp-controller="Home" asp-action="Logout" class="logout-btn">Logout</a>
+	</div>
+
+	<div class="main-content">
+		<h2>Leave Requests</h2>
+
+		@if (Model.LeaveRequests != null && Model.LeaveRequests.Any())
+		{
+			foreach (var request in Model.LeaveRequests)
+			{
+				<div class="card">
+					<div class="flex" style="margin-bottom: 10px;">
+						<div>
+							<h2>Employee: @request.Employee.FullName</h2>
+							<h3>@request.StartDate.ToShortDateString() - @request.EndDate.ToShortDateString()</h3>
+						</div>
+						<span style="padding: 4px 12px; background: #e5e7eb; border-radius: 9999px;">@request.Status</span>
+					</div>
+
+					<div class="reason" id="reason-@request.Id">
+						@request.Reason
+					</div>
+
+
+
+					<form method="post" asp-action="ProcessLeaveRequest" style="margin-top: 10px;">
+						<input type="hidden" name="requestId" value="@request.Id" />
+						<button type="submit" name="action" value="Approve" class="btn btn-approve">Approve</button>
+						<button type="submit" name="action" value="Reject" class="btn btn-reject">Reject</button>
+					</form>
+				</div>
+			}
+		}
+		else
+		{
+			<p>No leave requests found.</p>
+		}
+	</div>
+</body>
+</html>

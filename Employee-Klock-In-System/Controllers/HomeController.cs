@@ -3,16 +3,17 @@ using Microsoft.AspNetCore.Mvc;
 using Employee_Klock_In_System.Models;
 using Microsoft.EntityFrameworkCore;
 using Employee_Klock_In_System.Data;
+using Employee_Klock_In_System.Models.ViewModels;
 
 namespace Employee_Klock_In_System.Controllers
 {
     public class HomeController : Controller
     {
-        private readonly SignInManager<IdentityUser> _signInManager;
-        private readonly UserManager<IdentityUser> _userManager;
+        private readonly SignInManager<ApplicationUser> _signInManager;
+        private readonly UserManager<ApplicationUser> _userManager;
         private readonly ApplicationDbContext _context;
 
-        public HomeController(SignInManager<IdentityUser> signInManager, UserManager<IdentityUser> userManager, ApplicationDbContext context)
+        public HomeController(SignInManager<ApplicationUser> signInManager, UserManager<ApplicationUser> userManager, ApplicationDbContext context)
         {
             _signInManager = signInManager;
             _userManager = userManager;
@@ -47,6 +48,22 @@ namespace Employee_Klock_In_System.Controllers
         }
 
         [HttpGet]
+        public async Task<IActionResult> RedirectToDashboard()
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user != null)
+            {
+                var roles = await _userManager.GetRolesAsync(user);
+                if (roles.Contains("Admin"))
+                    return RedirectToAction("AdminDashboard", "Admin");
+
+                return RedirectToAction("EmployeeDashboard", "Employee");
+            }
+
+            return RedirectToAction("Index");
+        }
+
+        [HttpGet]
         public IActionResult Register()
         {
             return View();
@@ -58,23 +75,19 @@ namespace Employee_Klock_In_System.Controllers
         {
             if (ModelState.IsValid)
             {
-                var user = new IdentityUser { UserName = model.Email, Email = model.Email };
+                var user = new ApplicationUser
+                {
+                    UserName = model.Email,
+                    Email = model.Email,
+                    FirstName = model.FirstName,
+                    LastName = model.LastName,
+                    Role = "Employee"
+                };
+
                 var result = await _userManager.CreateAsync(user, model.Password);
 
                 if (result.Succeeded)
                 {
-                    // Create and store employee data
-                    var employee = new Employee
-                    {
-                        FirstName = model.FirstName,
-                        LastName = model.LastName,
-                        Email = model.Email,
-                        Role = "Employee"
-                    };
-
-                    _context.Employees.Add(employee);
-                    await _context.SaveChangesAsync();
-
                     await _userManager.AddToRoleAsync(user, "Employee");
                     await _signInManager.SignInAsync(user, isPersistent: false);
                     return RedirectToAction("EmployeeDashboard", "Employee");
@@ -89,7 +102,6 @@ namespace Employee_Klock_In_System.Controllers
             return View(model);
         }
 
-
         public async Task<IActionResult> Logout()
         {
             await _signInManager.SignOutAsync();
@@ -97,4 +109,3 @@ namespace Employee_Klock_In_System.Controllers
         }
     }
 }
-

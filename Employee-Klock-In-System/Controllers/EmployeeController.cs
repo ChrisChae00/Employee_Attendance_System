@@ -4,15 +4,17 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
+using Employee_Klock_In_System.Models.ViewModels;
+
 
 namespace Employee_Klock_In_System.Controllers
 {
     public class EmployeeController : Controller
     {
-        private readonly UserManager<IdentityUser> _userManager;
+        private readonly UserManager<ApplicationUser> _userManager;
         private readonly ApplicationDbContext _context;
 
-        public EmployeeController(UserManager<IdentityUser> userManager, ApplicationDbContext context)
+        public EmployeeController(UserManager<ApplicationUser> userManager, ApplicationDbContext context)
         {
             _userManager = userManager;
             _context = context;
@@ -21,9 +23,8 @@ namespace Employee_Klock_In_System.Controllers
         public async Task<IActionResult> EmployeeDashboard()
         {
             var user = await _userManager.GetUserAsync(User);
-            var employee = await _context.Employees.FirstOrDefaultAsync(e => e.Email == user.Email);
 
-            if (employee == null)
+            if (user == null)
             {
                 return RedirectToAction("Index", "Home");
             }
@@ -34,7 +35,7 @@ namespace Employee_Klock_In_System.Controllers
             var weekEnd = weekStart.AddDays(7);
 
             var weeklyAttendances = await _context.Attendances
-                .Where(a => a.EmployeeId == employee.Id &&
+                .Where(a => a.EmployeeId == user.Id &&
                             a.CheckInTime.Date >= weekStart &&
                             a.CheckInTime.Date < weekEnd)
                 .OrderBy(a => a.CheckInTime)
@@ -44,14 +45,14 @@ namespace Employee_Klock_In_System.Controllers
                 .FirstOrDefault(a => a.CheckInTime.Date == today);
 
             var history = await _context.Attendances
-                .Where(a => a.EmployeeId == employee.Id)
+                .Where(a => a.EmployeeId == user.Id)
                 .OrderByDescending(a => a.CheckInTime)
                 .Take(7)
                 .ToListAsync();  // Get the last 7 days of attendance history
 
-            var viewModel = new DashboardViewModel
+            var viewModel = new EmployeeDashboardViewModel
             {
-                Employee = employee,
+                Employee = user,
                 TodayAttendance = todayAttendance,
                 WeeklyAttendance = weeklyAttendances,
                 RecentHistory = history
@@ -65,19 +66,18 @@ namespace Employee_Klock_In_System.Controllers
         public async Task<IActionResult> KlockIn()
         {
             var user = await _userManager.GetUserAsync(User);
-            var employee = await _context.Employees.FirstOrDefaultAsync(e => e.Email == user.Email);
 
-            if (employee == null)
+            if (user == null)
                 return RedirectToAction("EmployeeDashboard");
 
             var alreadyCheckedIn = await _context.Attendances.AnyAsync(a =>
-                a.EmployeeId == employee.Id && a.CheckInTime.Date == DateTime.Today);
+                a.EmployeeId == user.Id && a.CheckInTime.Date == DateTime.Today);
 
             if (!alreadyCheckedIn)
             {
                 var attendance = new Attendance
                 {
-                    EmployeeId = employee.Id,
+                    EmployeeId = user.Id,
                     CheckInTime = DateTime.Now
                 };
                 _context.Attendances.Add(attendance);
@@ -92,13 +92,12 @@ namespace Employee_Klock_In_System.Controllers
         public async Task<IActionResult> KlockOut()
         {
             var user = await _userManager.GetUserAsync(User);
-            var employee = await _context.Employees.FirstOrDefaultAsync(e => e.Email == user.Email);
 
-            if (employee == null)
+            if (user == null)
                 return RedirectToAction("EmployeeDashboard");
 
             var todayAttendance = await _context.Attendances
-                .Where(a => a.EmployeeId == employee.Id && a.CheckInTime.Date == DateTime.Today)
+                .Where(a => a.EmployeeId == user.Id && a.CheckInTime.Date == DateTime.Today)
                 .OrderByDescending(a => a.CheckInTime)
                 .FirstOrDefaultAsync();
 
@@ -117,5 +116,53 @@ namespace Employee_Klock_In_System.Controllers
         {
             return View();  // Views/Employee/AttendanceHistory.cshtml
         }
+
+        [HttpGet]
+        public async Task<IActionResult> LeaveRequest()
+        {
+            var user = await _userManager.GetUserAsync(User);
+
+            var leaveRequests = await _context.LeaveRequests
+                .Where(l => l.EmployeeId == user.Id)
+                .OrderByDescending(l => l.StartDate)
+                .ToListAsync();
+
+            var viewModel = new LeaveRequestViewModel
+            {
+                Employee = user,
+                LeaveRequests = leaveRequests
+            };
+
+            return View(viewModel);
+        }
+
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SubmitLeaveRequest(DateTime startDate, DateTime endDate, string reason)
+        {
+            var user = await _userManager.GetUserAsync(User);
+
+            if (startDate > endDate)
+            {
+                ModelState.AddModelError("", "Start date cannot be after end date.");
+                return RedirectToAction("LeaveRequest");
+            }
+
+            var leaveRequest = new LeaveRequest
+            {
+                EmployeeId = user.Id,
+                StartDate = startDate,
+                EndDate = endDate,
+                Reason = reason,
+                Status = "Pending"
+            };
+
+            _context.LeaveRequests.Add(leaveRequest);
+            await _context.SaveChangesAsync();
+
+            return RedirectToAction("EmployeeDashboard", "Employee"); // or "LeaveRequest" if you prefer
+        }
+
     }
 }

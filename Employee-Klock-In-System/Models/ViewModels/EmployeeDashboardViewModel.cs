@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using Employee_Klock_In_System.Models;
 
-namespace Employee_Klock_In_System.Models
+namespace Employee_Klock_In_System.Models.ViewModels
 {
-    public class DashboardViewModel
+    public class EmployeeDashboardViewModel
     {
-        public Employee Employee { get; set; }
+        public ApplicationUser Employee { get; set; }
 
         public Attendance? TodayAttendance { get; set; }
 
